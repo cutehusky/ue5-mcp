@@ -1,0 +1,317 @@
+﻿### Create Blueprint
+POST http://localhost:8080/create_bp
+Content-Type: application/json
+
+{
+  "ParentClass": "Actor",
+  "BpPath": "/Game/Test/MyBlueprint"
+}
+
+### Create Function
+POST http://localhost:8080/create_function
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "FunctionName": "MyFunction",
+  "FunctionInputSignature": "int32 Input1, float Input2 ",
+  "FunctionOutputSignature": "bool Output"
+}
+
+### Edit Function
+POST http://localhost:8080/edit_function
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "FunctionName": "MyFunction",
+  "FunctionInputSignature": "int32 NewInput,float Input2,FString ExtraInput",
+  "FunctionOutputSignature": "bool NewOutput,float ExtraOutput"
+}
+
+### Delete Function
+POST http://localhost:8080/delete_function
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "FunctionName": "MyFunction"
+}
+
+### Add Function Call to Graph
+POST http://localhost:8080/add_function_call_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "FunctionName": "MyFunction"
+}
+
+### Add Custom Event to Graph
+POST http://localhost:8080/add_event_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "EventName": "MyEvent",
+  "bIsCustomEvent": true,
+  "EventSignature": "int32 Param1, float Param2"
+}
+
+
+### Add Event to Graph
+POST http://localhost:8080/add_event_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "EventName": "ReceiveHit",
+  "bIsCustomEvent": false
+}
+
+### Add Variable to Graph
+POST http://localhost:8080/add_variable_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "VarName": "Test",
+  "bIsSetter": true
+}
+
+### Add Variable to Graph
+POST http://localhost:8080/add_variable_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "VarName": "DefaultSceneRoot",
+  "bIsSetter": false
+}
+
+### Get Blueprint Variables
+GET http://localhost:8080/get_blueprint_variables?bp_path=/Game/Test/MyBlueprint
+
+### Get Blueprint Functions
+GET http://localhost:8080/get_blueprint_functions?bp_path=/Game/Test/MyBlueprint
+
+### Get Graph
+GET http://localhost:8080/get_graph?bp_path=/Game/Test/MyBlueprint&graph_name=EventGraph
+
+
+### Compile Blueprint
+POST http://localhost:8080/compile_blueprint?bp_path=/Game/Test/MyBlueprint
+
+### Get Supported Node
+GET http://localhost:8080/get_supported_nodes
+
+### Add Variable to Blueprint
+POST http://localhost:8080/add_variable_to_bp
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "VarSignature": "float NewVar99"
+}
+
+### Delete Variable from Blueprint
+POST http://localhost:8080/delete_variable_from_bp
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "VarName": "NewVar4"
+}
+
+### Rename Variable in Blueprint
+POST http://localhost:8080/rename_variable_in_bp
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "OldVarName": "NewVar2",
+  "NewVarName": "RenamedVar"
+}
+
+### Set Variable Default Value in Blueprint
+POST http://localhost:8080/set_variable_default_value_in_bp
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "VarName": "NewVar",
+  "DefaultValue": "3.14159"
+}
+
+### Connect Pins in Graph
+POST http://localhost:8080/connect_pins
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "OutputNodeId": "7C40B46046D4D873D5DF9C89D957426E",
+  "OutputPinName": "NewVar5",
+  "InputNodeId": "2AFEFE7B4F381FCD206A47903659176F",
+  "InputPinName": "TargetRelativeLocation"
+}
+
+### Break Connection between Pins in Graph
+POST http://localhost:8080/break_pin_connection
+Content-Type: application/json
+
+{
+"BpPath": "/Game/Test/MyBlueprint",
+"GraphName": "EventGraph",
+"OutputNodeId": "7C40B46046D4D873D5DF9C89D957426E",
+"OutputPinName": "NewVar5",
+"InputNodeId": "2AFEFE7B4F381FCD206A47903659176F",
+"InputPinName": "TargetRelativeLocation"
+}
+
+### Set Pin Default Value in Graph
+POST http://localhost:8080/set_pin_default_value
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "NodeId": "2AFEFE7B4F381FCD206A47903659176F",
+  "PinName": "TargetRelativeLocation",
+  "DefaultValue": "100, 200, 300"
+}
+
+### Add Generic Node to Graph
+POST http://localhost:8080/add_generic_node_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "NodeTypeName": "K2Node_PlayAnimation"
+}
+
+### Add Make Struct Node to Graph
+POST http://localhost:8080/add_make_struct_node_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "ExtraInfo": "Vector"
+}
+
+### Add Break Struct Node to Graph
+POST http://localhost:8080/add_break_struct_node_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "ExtraInfo": "Vector"
+}
+
+### Add Dynamic Cast Node to Graph
+POST http://localhost:8080/add_dynamic_cast_node_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+    "ExtraInfo": "Actor"
+}
+
+### Add Class Cast Node to Graph
+POST http://localhost:8080/add_class_cast_node_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+  "ExtraInfo": "Actor"
+}
+
+### Add Enum Cast Node to Graph
+POST http://localhost:8080/add_enum_cast_node_to_graph
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "GraphName": "EventGraph",
+    "ExtraInfo": "EPhysicalSurface"
+}
+
+### Add Math Node to Graph
+POST http://localhost:8080/add_math_node_to_graph
+Content-Type: application/json
+
+{
+    "BpPath": "/Game/Test/MyBlueprint",
+    "GraphName": "EventGraph",
+    "FunctionName": "Add_DoubleDouble"
+}
+
+### Get Components of Blueprint
+GET http://localhost:8080/get_components_of_bp?bp_path=/Game/Test/MyBlueprint3
+
+### Add Component to Blueprint
+POST http://localhost:8080/add_component_to_bp
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "ComponentClass": "StaticMeshComponent",
+  "ComponentName": "MyStaticMeshComp",
+  "AttachTo": "DefaultSceneRoot"
+}
+
+### Rename Component in Blueprint
+POST http://localhost:8080/rename_component_in_bp
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "ComponentName": "MyStaticMeshComp2",
+  "NewComponentName": "RenamedComp"
+}
+
+### Delete Component from Blueprint
+POST http://localhost:8080/remove_component_from_bp
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "ComponentName": "RenamedComp"
+}
+
+### Reparent Component in Blueprint
+POST http://localhost:8080/reattach_component_in_bp
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "ComponentName": "MyStaticMeshComp2",
+  "AttachTo": "MyStaticMeshComp"
+}
+
+### Get Component Properties
+GET http://localhost:8080/get_component_properties?bp_path=/Game/Test/MyBlueprint&component_name=MyStaticMeshComp
+
+### Set Component Property
+POST http://localhost:8080/set_component_property
+Content-Type: application/json
+
+{
+  "BpPath": "/Game/Test/MyBlueprint",
+  "ComponentName": "MyStaticMeshComp",
+  "Properties": {
+    "RelativeLocation": "X=0.5,Y=20,Z=100",
+    "StaticMesh": "/Engine/BasicShapes/Cube.Cube",
+    "Mobility": "Movable"
+  }
+}

@@ -5,9 +5,10 @@ import os
 
 dotenv.load_dotenv()
 
-mcp = FastMCP("UE5BlueprintMCP", port=9000)
-
+PORT = int(os.getenv("PORT", "9000"))
 BASE_URL = os.getenv("UE5_REST_API_URL", "http://localhost:8080")
+
+mcp = FastMCP("UE5BlueprintMCP", port=PORT)
 
 # System instruction for all tools
 common_instruction = """

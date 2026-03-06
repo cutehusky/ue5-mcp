@@ -138,7 +138,7 @@ bool PinUtils::ResolvePinTypeByName(const FString& TypeStr, FEdGraphPinType& Out
     }
 
     // --- Structs ---
-    if (UScriptStruct* Struct = FindObject<UScriptStruct>(ANY_PACKAGE, *CleanType))
+    if (UScriptStruct* Struct = FindObject<UScriptStruct>(nullptr, *CleanType))
     {
         OutPinType.PinCategory = UEdGraphSchema_K2::PC_Struct;
         OutPinType.PinSubCategoryObject = Struct;
@@ -146,7 +146,7 @@ bool PinUtils::ResolvePinTypeByName(const FString& TypeStr, FEdGraphPinType& Out
     }
 
     // --- Enums ---
-    if (UEnum* Enum = FindObject<UEnum>(ANY_PACKAGE, *CleanType))
+    if (UEnum* Enum = FindObject<UEnum>(nullptr, *CleanType))
     {
         OutPinType.PinCategory = UEdGraphSchema_K2::PC_Byte;
         OutPinType.PinSubCategoryObject = Enum;

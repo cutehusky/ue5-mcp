@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <stdexcept>
 
 // Utility functions for manipulating Classes
 class ClassUtils

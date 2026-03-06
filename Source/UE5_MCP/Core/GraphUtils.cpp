@@ -211,7 +211,7 @@ void GraphUtils::AddBreakStructNodeToGraph(UBlueprint* Blueprint, UEdGraph* Grap
 	if (!Blueprint || !Graph)
 		throw std::runtime_error("Blueprint or Graph is null");
 
-	auto Struct = FindObject<UScriptStruct>(ANY_PACKAGE, *StructTypeName);
+	auto Struct = FindObject<UScriptStruct>(nullptr, *StructTypeName);
 	if (!Struct)
 		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Struct %s not found"), *StructTypeName)));
 
@@ -227,7 +227,7 @@ void GraphUtils::AddMakeStructNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph
 	if (!Blueprint || !Graph)
 		throw std::runtime_error("Blueprint or Graph is null");
 
-	auto Struct = FindObject<UScriptStruct>(ANY_PACKAGE, *StructTypeName);
+	auto Struct = FindObject<UScriptStruct>(nullptr, *StructTypeName);
 	if (!Struct)
 		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Struct %s not found"), *StructTypeName)));
 
@@ -341,7 +341,7 @@ void GraphUtils::AddByteToEnumNodeCastToGraph(UBlueprint* Blueprint, UEdGraph* G
 	if (!Blueprint || !Graph)
 		throw std::runtime_error("Blueprint or Graph is null");
 
-	auto Enum = FindObject<UEnum>(ANY_PACKAGE, *PinTypeName);
+	auto Enum = FindObject<UEnum>(nullptr, *PinTypeName);
 	if (!Enum)
 		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Enum %s not found"), *PinTypeName)));
 

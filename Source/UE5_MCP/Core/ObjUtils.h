@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <stdexcept>
 
 using FJsonSerializerFunc = TFunction<void(FProperty* Prop, const void* Obj, TSharedRef<TJsonWriter<>> Writer, const FString& Name)>;
 using FJsonArraySerializerFunc = TFunction<void(FProperty* InnerProp, const void* ElementPtr, TSharedRef<TJsonWriter<>> Writer)>;

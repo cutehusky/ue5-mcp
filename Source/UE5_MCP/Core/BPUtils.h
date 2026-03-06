@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <stdexcept>
 
 class UK2Node_FunctionTerminator;
 class UK2Node_FunctionEntry;

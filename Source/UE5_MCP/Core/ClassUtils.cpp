@@ -9,7 +9,7 @@
 UClass* ClassUtils::FindClassByName(const FString& ClassFullName)
 {
 	// 1. Already loaded?
-	UClass* Class = FindObject<UClass>(ANY_PACKAGE, *ClassFullName);
+	UClass* Class = FindObject<UClass>(nullptr, *ClassFullName);
 	if (Class)
 		return Class;
 

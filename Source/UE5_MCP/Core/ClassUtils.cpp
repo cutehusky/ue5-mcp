@@ -9,7 +9,7 @@
 UClass* ClassUtils::FindClassByName(const FString& ClassFullName)
 {
 	// 1. Already loaded?
-	UClass* Class = FindObject<UClass>(nullptr, *ClassFullName);
+	UClass* Class = FindFirstObject<UClass>(*ClassFullName);
 	if (Class)
 		return Class;
 
@@ -23,7 +23,7 @@ UClass* ClassUtils::FindClassByName(const FString& ClassFullName)
 		return Class;
 	}
 
-	// 3. C++ class with /Script/Module.Class format
+	// 3. C++ class with /Script/ModuleName.ClassName format
 	if (ClassFullName.StartsWith("/Script/"))
 	{
 		Class = StaticLoadClass(UObject::StaticClass(), nullptr, *ClassFullName);

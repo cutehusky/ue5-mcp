@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ue5-mcp"
+version = "0.1.0"
+description = "Python MCP server for the UE5_MCP Unreal Editor plugin"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "httpx>=0.27,<1",
+    "mcp>=1.20,<2",
+    "python-dotenv>=1.0,<2",
+]
+
+[project.scripts]
+ue5-mcp = "mcp_server:run"
+
+[tool.setuptools]
+py-modules = ["mcp_server", "ue5_client"]
+packages = ["ue5_tools"]

@@ -27,20 +27,20 @@ class ObjUtils
 	static void SetPropertyByPath(
 		UObject* Obj,
 		const TArray<FString>& PathParts,
-		FString Value, int32 Index = 0);
+		const FString& Value, int32 Index = 0);
 	
 	static void SetPropertyByPath(
-		FStructProperty* StructProp, void* StructPtr,
+		const FStructProperty* StructProp, void* StructPtr,
 		const TArray<FString>& PathParts,
-		FString Value, int32 Index = 0);
+		const FString& Value, int32 Index = 0);
 
 	static void SetPropertyByPath(
-		FArrayProperty* ArrayProp, void* ArrayPtr,
+		const FArrayProperty* ArrayProp, const void* ArrayPtr,
 		const TArray<FString>& PathParts,
-		FString Value, int32 Index = 0);
+		const FString& Value, int32 Index = 0);
 public:
-	static FString SerializeObjectToJson(UObject* obj);
-	static void SetPropertyValueFromString(UObject* obj, const FString& PropertyPath, const FString& PropertyValue);
+	static FString SerializeObjectToJson(UObject* Obj);
+	static void SetPropertyValueFromString(UObject* Obj, const FString& PropertyPath, const FString& PropertyValue);
 };
 
 

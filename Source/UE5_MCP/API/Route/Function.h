@@ -1,10 +1,5 @@
 ﻿#pragma once
-#include "HttpResultCallback.h"
-#include "HttpServerRequest.h"
+#include "UE5_MCP/API/Interface/HttpApp.h"
 
 
-bool CreateFunctionHandler(const FHttpServerRequest& Req, const FHttpResultCallback& OnComplete);;
-
-bool EditFunctionHandler(const FHttpServerRequest& Req, const FHttpResultCallback& OnComplete);;
-
-bool DeleteFunctionHandler(const FHttpServerRequest& Req, const FHttpResultCallback& OnComplete);;
+void BuildBlueprintFunctionRouter(TSharedPtr<HttpApp> App);

@@ -54,6 +54,14 @@ public:
 	// Adds a Byte to Enum Cast node to the specified Blueprint's graph
 	static void AddByteToEnumNodeCastToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& PinTypeName);
 
+	// Adds common control-flow and switch nodes with their native K2 configuration.
+	static void AddBranchNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph);
+	static void AddExecutionSequenceNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, int32 OutputCount = 2);
+	static void AddSwitchEnumNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& EnumTypeName);
+	static void AddSwitchIntegerNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, int32 StartIndex = 0);
+	static void AddSwitchStringNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph);
+	static void AddSwitchNameNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph);
+
 	// TODO: Add support for Switch on Name, String, Int nodes
 	
 	// TODO: Add support for array, set, map operations nodes
@@ -73,6 +81,7 @@ public:
 
 	// Returns a list of supported node type names that can be added via AddNodeByNameToGraph
 	static TArray<FString> GetSupportedNode();
+	static TArray<FString> GetSupportedNodesForGraphType(const FString& GraphType);
 	
 #pragma region PinOperations
 

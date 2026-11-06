@@ -1,9 +1,6 @@
 ﻿#pragma once
 
+class HttpApp;
 class IHttpRouter;
 
-class Router
-{
-public:
-	static void Bind(TSharedPtr<IHttpRouter> Router);
-};
+void BuildRouter(TSharedPtr<HttpApp> App);

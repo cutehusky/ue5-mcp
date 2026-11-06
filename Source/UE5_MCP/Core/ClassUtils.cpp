@@ -4,6 +4,21 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "UObject/SavePackage.h"
+#include "WidgetBlueprintFactory.h"
+#include "WidgetBlueprint.h"
+#include "Blueprint/UserWidget.h"
+#include "Factories/AnimSequenceFactory.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/Skeleton.h"
+#include "Engine/SkeletalMesh.h"
+#include "Factories/DataAssetFactory.h"
+#include "Engine/DataAsset.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardData.h"
+#include "BehaviorTreeFactory.h"
+#include "BlackboardDataFactory.h"
+#include "LevelSequence.h"
+#include "MovieScene.h"
 
 
 UClass* ClassUtils::FindClassByName(const FString& ClassFullName)
@@ -132,5 +147,167 @@ FString ClassUtils::CreateBlueprintFromClass(const FString& ParentClassFullName,
 
 	UE_LOG(LogTemp, Log, TEXT("Blueprint created: %s"), *PackageFileName);
 	return UniquePackageName;
+}
+
+FString ClassUtils::CreateWidgetBlueprint(const FString& ParentClassFullName, const FString& BlueprintPath)
+{
+	UClass* ParentClass = FindClassByName(ParentClassFullName);
+	if (!ParentClass || !ParentClass->IsChildOf(UUserWidget::StaticClass()))
+		throw std::runtime_error("Widget Blueprint parent must derive from UUserWidget");
+
+	int32 LastSlashIndex = INDEX_NONE;
+	if (!BlueprintPath.FindLastChar('/', LastSlashIndex) || LastSlashIndex <= 0)
+		throw std::runtime_error("Widget Blueprint path must include a package path");
+
+	const FString PackageName = BlueprintPath.Left(LastSlashIndex);
+	const FString AssetName = BlueprintPath.Mid(LastSlashIndex + 1);
+	FString UniquePackageName;
+	FString UniqueAssetName;
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	AssetToolsModule.Get().CreateUniqueAssetName(PackageName + "/" + AssetName, TEXT(""), UniquePackageName, UniqueAssetName);
+
+	UWidgetBlueprintFactory* Factory = NewObject<UWidgetBlueprintFactory>();
+	Factory->ParentClass = ParentClass;
+	Factory->BlueprintType = BPTYPE_Normal;
+	UObject* Created = AssetToolsModule.Get().CreateAsset(
+		UniqueAssetName,
+		FPackageName::GetLongPackagePath(UniquePackageName),
+		UWidgetBlueprint::StaticClass(),
+		Factory);
+	UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(Created);
+	if (!WidgetBlueprint)
+		throw std::runtime_error("Failed to create Widget Blueprint");
+
+	WidgetBlueprint->MarkPackageDirty();
+	return WidgetBlueprint->GetOutermost()->GetName();
+}
+
+FString ClassUtils::CreateAnimationSequence(const FString& BlueprintPath, const FString& SkeletonPath, const FString& PreviewMeshPath)
+{
+	USkeleton* Skeleton = Cast<USkeleton>(StaticLoadObject(USkeleton::StaticClass(), nullptr, *SkeletonPath));
+	if (!Skeleton)
+		throw std::runtime_error("skeleton_path must identify a valid USkeleton asset");
+
+	USkeletalMesh* PreviewMesh = nullptr;
+	if (!PreviewMeshPath.IsEmpty())
+	{
+		PreviewMesh = Cast<USkeletalMesh>(StaticLoadObject(USkeletalMesh::StaticClass(), nullptr, *PreviewMeshPath));
+		if (!PreviewMesh)
+			throw std::runtime_error("preview_mesh_path must identify a valid USkeletalMesh asset");
+	}
+
+	int32 LastSlashIndex = INDEX_NONE;
+	if (!BlueprintPath.FindLastChar('/', LastSlashIndex) || LastSlashIndex <= 0)
+		throw std::runtime_error("animation asset path must include a package path");
+
+	const FString PackageName = BlueprintPath.Left(LastSlashIndex);
+	const FString AssetName = BlueprintPath.Mid(LastSlashIndex + 1);
+	FString UniquePackageName;
+	FString UniqueAssetName;
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	AssetToolsModule.Get().CreateUniqueAssetName(PackageName + "/" + AssetName, TEXT(""), UniquePackageName, UniqueAssetName);
+
+	UAnimSequenceFactory* Factory = NewObject<UAnimSequenceFactory>();
+	Factory->TargetSkeleton = Skeleton;
+	Factory->PreviewSkeletalMesh = PreviewMesh;
+	UObject* Created = AssetToolsModule.Get().CreateAsset(
+		UniqueAssetName,
+		FPackageName::GetLongPackagePath(UniquePackageName),
+		UAnimSequence::StaticClass(),
+		Factory);
+	UAnimSequence* Animation = Cast<UAnimSequence>(Created);
+	if (!Animation)
+		throw std::runtime_error("Failed to create Animation Sequence");
+	Animation->MarkPackageDirty();
+	return Animation->GetOutermost()->GetName();
+}
+
+FString ClassUtils::CreateDataAsset(const FString& AssetPath, const FString& AssetClass)
+{
+	UClass* DataClass = FindClassByName(AssetClass);
+	if (!DataClass || !DataClass->IsChildOf(UDataAsset::StaticClass()) || DataClass->HasAnyClassFlags(CLASS_Abstract))
+		throw std::runtime_error("asset_class must be a non-abstract UDataAsset-derived class");
+
+	int32 LastSlashIndex = INDEX_NONE;
+	if (!AssetPath.FindLastChar('/', LastSlashIndex) || LastSlashIndex <= 0)
+		throw std::runtime_error("data asset path must include a package path");
+
+	const FString PackageName = AssetPath.Left(LastSlashIndex);
+	const FString AssetName = AssetPath.Mid(LastSlashIndex + 1);
+	FString UniquePackageName;
+	FString UniqueAssetName;
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	AssetToolsModule.Get().CreateUniqueAssetName(PackageName + "/" + AssetName, TEXT(""), UniquePackageName, UniqueAssetName);
+
+	UDataAssetFactory* Factory = NewObject<UDataAssetFactory>();
+	Factory->DataAssetClass = DataClass;
+	UObject* Created = AssetToolsModule.Get().CreateAsset(
+		UniqueAssetName,
+		FPackageName::GetLongPackagePath(UniquePackageName),
+		UDataAsset::StaticClass(),
+		Factory);
+	UDataAsset* DataAsset = Cast<UDataAsset>(Created);
+	if (!DataAsset)
+		throw std::runtime_error("Failed to create Data Asset");
+	DataAsset->MarkPackageDirty();
+	return DataAsset->GetOutermost()->GetName();
+}
+
+FString ClassUtils::CreateBehaviorTree(const FString& AssetPath)
+{
+	int32 LastSlashIndex = INDEX_NONE;
+	if (!AssetPath.FindLastChar('/', LastSlashIndex) || LastSlashIndex <= 0)
+		throw std::runtime_error("behavior tree path must include a package path");
+	const FString PackageName = AssetPath.Left(LastSlashIndex);
+	const FString AssetName = AssetPath.Mid(LastSlashIndex + 1);
+	FString UniquePackageName;
+	FString UniqueAssetName;
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	AssetToolsModule.Get().CreateUniqueAssetName(PackageName + "/" + AssetName, TEXT(""), UniquePackageName, UniqueAssetName);
+	UBehaviorTreeFactory* Factory = NewObject<UBehaviorTreeFactory>();
+	UObject* Created = AssetToolsModule.Get().CreateAsset(UniqueAssetName, FPackageName::GetLongPackagePath(UniquePackageName), UBehaviorTree::StaticClass(), Factory);
+	UBehaviorTree* BehaviorTree = Cast<UBehaviorTree>(Created);
+	if (!BehaviorTree) throw std::runtime_error("Failed to create Behavior Tree");
+	BehaviorTree->MarkPackageDirty();
+	return BehaviorTree->GetOutermost()->GetName();
+}
+
+FString ClassUtils::CreateBlackboard(const FString& AssetPath)
+{
+	int32 LastSlashIndex = INDEX_NONE;
+	if (!AssetPath.FindLastChar('/', LastSlashIndex) || LastSlashIndex <= 0)
+		throw std::runtime_error("blackboard path must include a package path");
+	const FString PackageName = AssetPath.Left(LastSlashIndex);
+	const FString AssetName = AssetPath.Mid(LastSlashIndex + 1);
+	FString UniquePackageName;
+	FString UniqueAssetName;
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	AssetToolsModule.Get().CreateUniqueAssetName(PackageName + "/" + AssetName, TEXT(""), UniquePackageName, UniqueAssetName);
+	UBlackboardDataFactory* Factory = NewObject<UBlackboardDataFactory>();
+	UObject* Created = AssetToolsModule.Get().CreateAsset(UniqueAssetName, FPackageName::GetLongPackagePath(UniquePackageName), UBlackboardData::StaticClass(), Factory);
+	UBlackboardData* Blackboard = Cast<UBlackboardData>(Created);
+	if (!Blackboard) throw std::runtime_error("Failed to create Blackboard");
+	Blackboard->MarkPackageDirty();
+	return Blackboard->GetOutermost()->GetName();
+}
+
+FString ClassUtils::CreateLevelSequence(const FString& AssetPath)
+{
+	int32 LastSlashIndex = INDEX_NONE;
+	if (!AssetPath.FindLastChar('/', LastSlashIndex) || LastSlashIndex <= 0)
+		throw std::runtime_error("level sequence path must include a package path");
+	const FString PackageName = AssetPath.Left(LastSlashIndex);
+	const FString AssetName = AssetPath.Mid(LastSlashIndex + 1);
+	FString UniquePackageName;
+	FString UniqueAssetName;
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	AssetToolsModule.Get().CreateUniqueAssetName(PackageName + "/" + AssetName, TEXT(""), UniquePackageName, UniqueAssetName);
+	UPackage* Package = CreatePackage(*UniquePackageName);
+	ULevelSequence* Sequence = NewObject<ULevelSequence>(Package, ULevelSequence::StaticClass(), *UniqueAssetName, RF_Public | RF_Standalone | RF_Transactional);
+	if (!Sequence) throw std::runtime_error("Failed to create Level Sequence");
+	Sequence->Initialize();
+	FAssetRegistryModule::AssetCreated(Sequence);
+	Package->MarkPackageDirty();
+	return Sequence->GetOutermost()->GetName();
 }
 

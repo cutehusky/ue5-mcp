@@ -8,19 +8,26 @@
 #include "K2Node_ClassDynamicCast.h"
 #include "K2Node_CustomEvent.h"
 #include "K2Node_DynamicCast.h"
+#include "K2Node_ExecutionSequence.h"
+#include "K2Node_IfThenElse.h"
 #include "K2Node_MakeStruct.h"
 #include "K2Node_SwitchEnum.h"
+#include "K2Node_SwitchInteger.h"
+#include "K2Node_SwitchName.h"
+#include "K2Node_SwitchString.h"
 #include "K2Node_VariableGet.h"
 #include "K2Node_VariableSet.h"
 #include "PinUtils.h"
 #include "Kismet2/BlueprintEditorUtils.h"
+#include "AnimGraphNode_Base.h"
+#include "Materials/MaterialExpression.h"
 
 
 
 void GraphUtils::AddFunctionCallToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& FunctionName)
 {
     if (!Blueprint || !Graph)
-        throw std::runtime_error("Blueprint or Graph is null");
+        throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
     auto BPClass = Blueprint->GeneratedClass;
     if (!BPClass)
@@ -42,7 +49,7 @@ void GraphUtils::AddFunctionCallToGraph(UBlueprint* Blueprint, UEdGraph* Graph, 
 	const FString& FunctionName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	auto TargetClass = ClassUtils::FindClassByName(ClassToCall);
 	if (!TargetClass)
@@ -64,7 +71,7 @@ void GraphUtils::AddFunctionCallToGraph(UBlueprint* Blueprint, UEdGraph* Graph, 
 void GraphUtils::AddMathFunctionCallToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& FunctionName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	UClass* MathClass = UKismetMathLibrary::StaticClass();
 	UFunction* TargetFunction = MathClass->FindFunctionByName(*FunctionName);
@@ -84,7 +91,7 @@ void GraphUtils::AddEventToGraph(UBlueprint* Blueprint,
                                  UEdGraph* Graph, const FString& EventName)
 {
     if (!Blueprint || !Graph)
-        throw std::runtime_error("Blueprint or Graph is null");
+        throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
     
     UClass* BPClass = Blueprint->GeneratedClass;
     if (!BPClass)
@@ -161,7 +168,7 @@ void GraphUtils::AddGetVariableNodeToGraph(
     UBlueprint* Blueprint, UEdGraph* Graph, const FString& VarName)
 {
     if (!Blueprint || !Graph)
-        throw std::runtime_error("Blueprint or Graph is null");
+        throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
     auto BPClass = Blueprint->GeneratedClass;
     if (!BPClass)
@@ -185,7 +192,7 @@ void GraphUtils::AddSetVariableNodeToGraph(
     UBlueprint* Blueprint, UEdGraph* Graph, const FString& VarName)
 {
     if (!Blueprint || !Graph)
-        throw std::runtime_error("Blueprint or Graph is null");
+        throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
     
     auto BPClass = Blueprint->GeneratedClass;
@@ -209,7 +216,7 @@ void GraphUtils::AddSetVariableNodeToGraph(
 void GraphUtils::AddBreakStructNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& StructTypeName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	auto Struct = FindFirstObject<UScriptStruct>(*StructTypeName);
 	if (!Struct)
@@ -225,7 +232,7 @@ void GraphUtils::AddBreakStructNodeToGraph(UBlueprint* Blueprint, UEdGraph* Grap
 void GraphUtils::AddMakeStructNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& StructTypeName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	auto Struct = FindFirstObject<UScriptStruct>(*StructTypeName);
 	if (!Struct)
@@ -241,7 +248,7 @@ void GraphUtils::AddMakeStructNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph
 void GraphUtils::AddCommentNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& CommentText)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	FGraphNodeCreator<UEdGraphNode_Comment> NodeCreator(*Graph);
 	UEdGraphNode_Comment* CommentNode = NodeCreator.CreateNode();
@@ -254,7 +261,7 @@ void GraphUtils::AddCommentNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, c
 void GraphUtils::AddSwitchEnumNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& PinTypeName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	UEnum* Enum = FindFirstObject<UEnum>(*PinTypeName);
 	if (!Enum)
@@ -274,7 +281,8 @@ UClass* GraphUtils::FindK2NodeClassByName(const FString& NodeClassName)
 	for (TObjectIterator<UClass> It; It; ++It)
 	{
 		UClass* Class = *It;
-		if (Class->IsChildOf(UEdGraphNode::StaticClass()) && Class->GetName() == NodeClassName)
+		if (Class->IsChildOf(UEdGraphNode::StaticClass()) &&
+			(Class->GetName() == NodeClassName || Class->GetPathName() == NodeClassName))
 		{
 			return Class;
 		}
@@ -286,11 +294,11 @@ UClass* GraphUtils::FindK2NodeClassByName(const FString& NodeClassName)
 void GraphUtils::AddNodeByNameToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& NodeTypeName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	UClass* NewNodeClass = FindK2NodeClassByName(NodeTypeName);
 	if (!NewNodeClass)
-		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Node type %s not found"), *NodeTypeName)));
+		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Node type %s not found. get_supported_nodes lists the valid names."), *NodeTypeName)));
 
 	auto NewNode = NewObject<UK2Node>(Graph, NewNodeClass);
 	if (!NewNode)
@@ -307,7 +315,7 @@ void GraphUtils::AddNodeByNameToGraph(UBlueprint* Blueprint, UEdGraph* Graph, co
 void GraphUtils::AddDynamicCastNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& PinTypeName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	auto TargetClass = ClassUtils::FindClassByName(PinTypeName);
 
@@ -324,7 +332,7 @@ void GraphUtils::AddDynamicCastNodeToGraph(UBlueprint* Blueprint, UEdGraph* Grap
 void GraphUtils::AddClassCastNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& PinTypeName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 	auto TargetClass = ClassUtils::FindClassByName(PinTypeName);
 	if (!TargetClass)
 		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Class %s not found"), *PinTypeName)));
@@ -339,7 +347,7 @@ void GraphUtils::AddClassCastNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph,
 void GraphUtils::AddByteToEnumNodeCastToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& PinTypeName)
 {
 	if (!Blueprint || !Graph)
-		throw std::runtime_error("Blueprint or Graph is null");
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
 
 	auto Enum = FindFirstObject<UEnum>( *PinTypeName);
 	if (!Enum)
@@ -348,6 +356,73 @@ void GraphUtils::AddByteToEnumNodeCastToGraph(UBlueprint* Blueprint, UEdGraph* G
 	FGraphNodeCreator<UK2Node_CastByteToEnum> NodeCreator(*Graph);
 	UK2Node_CastByteToEnum* CastNode = NodeCreator.CreateNode();
 	CastNode->Enum = Enum;
+	NodeCreator.Finalize();
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+}
+
+void GraphUtils::AddBranchNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph)
+{
+	if (!Blueprint || !Graph)
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
+	FGraphNodeCreator<UK2Node_IfThenElse> NodeCreator(*Graph);
+	NodeCreator.CreateNode();
+	NodeCreator.Finalize();
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+}
+
+void GraphUtils::AddExecutionSequenceNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, int32 OutputCount)
+{
+	if (!Blueprint || !Graph)
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
+	FGraphNodeCreator<UK2Node_ExecutionSequence> NodeCreator(*Graph);
+	UK2Node_ExecutionSequence* Node = NodeCreator.CreateNode();
+	NodeCreator.Finalize();
+	for (int32 Index = 2; Index < FMath::Max(2, OutputCount); ++Index)
+		Node->AddInputPin();
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+}
+
+void GraphUtils::AddSwitchEnumNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, const FString& EnumTypeName)
+{
+	if (!Blueprint || !Graph)
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
+	UEnum* Enum = FindFirstObject<UEnum>(*EnumTypeName);
+	if (!Enum)
+		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Enum %s not found"), *EnumTypeName)));
+	FGraphNodeCreator<UK2Node_SwitchEnum> NodeCreator(*Graph);
+	UK2Node_SwitchEnum* Node = NodeCreator.CreateNode();
+	Node->SetEnum(Enum);
+	NodeCreator.Finalize();
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+}
+
+void GraphUtils::AddSwitchIntegerNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph, int32 StartIndex)
+{
+	if (!Blueprint || !Graph)
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
+	FGraphNodeCreator<UK2Node_SwitchInteger> NodeCreator(*Graph);
+	UK2Node_SwitchInteger* Node = NodeCreator.CreateNode();
+	Node->StartIndex = StartIndex;
+	NodeCreator.Finalize();
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+}
+
+void GraphUtils::AddSwitchStringNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph)
+{
+	if (!Blueprint || !Graph)
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
+	FGraphNodeCreator<UK2Node_SwitchString> NodeCreator(*Graph);
+	NodeCreator.CreateNode();
+	NodeCreator.Finalize();
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+}
+
+void GraphUtils::AddSwitchNameNodeToGraph(UBlueprint* Blueprint, UEdGraph* Graph)
+{
+	if (!Blueprint || !Graph)
+		throw std::runtime_error("Graph not found in this Blueprint. Use graph_name EventGraph or a function name; get_blueprint_graph lists its graphs.");
+	FGraphNodeCreator<UK2Node_SwitchName> NodeCreator(*Graph);
+	NodeCreator.CreateNode();
 	NodeCreator.Finalize();
 	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
 }
@@ -365,6 +440,31 @@ TArray<FString> GraphUtils::GetSupportedNode()
 			// UE_LOG(LogTemp, Log, TEXT("Found K2Node class: %s"), *Class->GetName());
 		}
 	}
+	return NodeTypes;
+}
+
+TArray<FString> GraphUtils::GetSupportedNodesForGraphType(const FString& GraphType)
+{
+	TArray<FString> NodeTypes;
+	const FString Type = GraphType.ToLower();
+	for (TObjectIterator<UClass> It; It; ++It)
+	{
+		UClass* Class = *It;
+		if (!Class || Class->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated))
+			continue;
+
+		bool bSupported = false;
+		if (Type == TEXT("blueprint") || Type == TEXT("all"))
+			bSupported |= Class->IsChildOf(UK2Node::StaticClass());
+		if (Type == TEXT("animation") || Type == TEXT("animation_blueprint") || Type == TEXT("all"))
+			bSupported |= Class->IsChildOf(UAnimGraphNode_Base::StaticClass());
+		if (Type == TEXT("material") || Type == TEXT("all"))
+			bSupported |= Class->IsChildOf(UMaterialExpression::StaticClass());
+
+		if (bSupported)
+			NodeTypes.AddUnique(Class->GetPathName());
+	}
+	NodeTypes.Sort();
 	return NodeTypes;
 }
 
@@ -388,6 +488,21 @@ UEdGraphNode* GraphUtils::GetNodeById(
 	return nullptr;
 }
 
+static std::runtime_error PinNotFound(const UEdGraphNode* Node, const FString& PinName)
+{
+	TArray<FString> Pins;
+	for (const UEdGraphPin* Pin : Node->Pins)
+		Pins.Add(FString::Printf(TEXT("%s (%s %s)"), *Pin->PinName.ToString(), Pin->Direction == EGPD_Input ? TEXT("input") : TEXT("output"), *Pin->PinType.PinCategory.ToString()));
+	return std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Node '%s' has no pin '%s'. Its pins are: %s."),
+		*Node->GetNodeTitle(ENodeTitleType::ListView).ToString(), *PinName, *FString::Join(Pins, TEXT(", ")))));
+}
+
+static std::runtime_error NodeNotFound(const FGuid& NodeId, const UEdGraph* Graph)
+{
+	return std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("No node with id %s in graph %s, which has %d nodes. get_graph lists the node ids."),
+		*NodeId.ToString(), *Graph->GetName(), Graph->Nodes.Num())));
+}
+
 void GraphUtils::ConnectPins(
 	UBlueprint* Blueprint,
 	UEdGraph* Graph,
@@ -403,17 +518,23 @@ void GraphUtils::ConnectPins(
 	UEdGraphNode* OutputNode = GetNodeById(Graph, OutputNodeId);
 	UEdGraphNode* InputNode = GetNodeById(Graph, InputNodeId);
 
-	if (!OutputNode || !InputNode)
-		throw std::runtime_error("OutputNode or InputNode not found");
+	if (!OutputNode) throw NodeNotFound(OutputNodeId, Graph);
+	if (!InputNode) throw NodeNotFound(InputNodeId, Graph);
 
 	// Find pins
 	UEdGraphPin* OutPin = OutputNode->FindPin(OutputPinName);
 	UEdGraphPin* InPin = InputNode->FindPin(InputPinName);
 
-	if (!OutPin || !InPin)
-		throw std::runtime_error("OutPin or InPin not found");
+	if (!OutPin) throw PinNotFound(OutputNode, OutputPinName);
+	if (!InPin) throw PinNotFound(InputNode, InputPinName);
 
-	OutPin->MakeLinkTo(InPin);
+	// The schema rejects bad links and notifies the nodes, which is how a cast or wildcard pin gets its type.
+	const UEdGraphSchema* Schema = Graph->GetSchema();
+	const FPinConnectionResponse Response = Schema->CanCreateConnection(OutPin, InPin);
+	if (Response.Response == CONNECT_RESPONSE_DISALLOW)
+		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Cannot connect %s to %s: %s"), *OutputPinName, *InputPinName, *Response.Message.ToString())));
+	if (!Schema->TryCreateConnection(OutPin, InPin))
+		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Graph schema rejected connecting %s to %s"), *OutputPinName, *InputPinName)));
 
 	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
 }
@@ -431,15 +552,15 @@ void GraphUtils::BreakPinConnection(UBlueprint* Blueprint, UEdGraph* Graph, cons
 	UEdGraphNode* OutputNode = GetNodeById(Graph, OutputNodeId);
 	UEdGraphNode* InputNode = GetNodeById(Graph, InputNodeId);
 
-	if (!OutputNode || !InputNode)
-		throw std::runtime_error("OutputNode or InputNode not found");
+	if (!OutputNode) throw NodeNotFound(OutputNodeId, Graph);
+	if (!InputNode) throw NodeNotFound(InputNodeId, Graph);
 
 	// Find pins
 	UEdGraphPin* OutPin = OutputNode->FindPin(OutputPinName);
 	UEdGraphPin* InPin = InputNode->FindPin(InputPinName);
 
-	if (!OutPin || !InPin)
-		throw std::runtime_error("OutPin or InPin not found");
+	if (!OutPin) throw PinNotFound(OutputNode, OutputPinName);
+	if (!InPin) throw PinNotFound(InputNode, InputPinName);
 
 	OutPin->BreakLinkTo(InPin);
 
@@ -462,14 +583,19 @@ void GraphUtils::SetPinDefaultValue(
 	UEdGraphNode* Node = GetNodeById(Graph, NodeId);
 
 	if (!Node)
-		throw std::runtime_error("Node not found");
+		throw NodeNotFound(NodeId, Graph);
 
 	UEdGraphPin* Pin = Node->FindPin(PinName);
 	if (!Pin)
-		throw std::runtime_error("Pin not found");
+		throw PinNotFound(Node, PinName);
 
-	Pin->DefaultValue = DefaultValue;
+	// The schema fills DefaultObject for class and object pins and DefaultTextValue for text pins, and tells the node.
+	Graph->GetSchema()->TrySetDefaultValue(*Pin, DefaultValue);
+	const FName Category = Pin->PinType.PinCategory;
+	if (!DefaultValue.IsEmpty() && !Pin->DefaultObject
+		&& (Category == UEdGraphSchema_K2::PC_Object || Category == UEdGraphSchema_K2::PC_Class))
+		throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("%s is not a valid object or class for pin %s"), *DefaultValue, *PinName)));
 
-	Node->PinDefaultValueChanged(Pin);
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
 }
 

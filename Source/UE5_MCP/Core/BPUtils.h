@@ -46,7 +46,7 @@ public:
 	static TArray<FString> GetBlueprintVariables(UBlueprint* Blueprint, bool bIncludeAll = false);
 
 	// Get all function signatures in the Blueprint
-	static TArray<FString> GetBlueprintFunctions(UBlueprint* Blueprint);
+	static TArray<FString> GetBlueprintFunctions(const UBlueprint* Blueprint);
 	
 	static void AddVariableToBlueprint(UBlueprint* Blueprint, const FString& VarSignature,
 	                                   const FString& DefaultValue);
@@ -58,11 +58,13 @@ public:
 	static void SetVariableDefaultValueInBlueprint(UBlueprint* Blueprint, const FString& VarName, const FString& DefaultValue);
 	
 	static FString GetBlueprintGraphJson(UEdGraph* Graph);
+
+	// Arrange graph nodes into dependency columns, with cycle-safe fallback ordering.
 	
 	static void AddComponentToBlueprintByName(UBlueprint* Blueprint, const FString& ComponentClassName,
 	                                          const FString& ComponentVarName, const FString& AttachTo);
 	
-	static FString GetBlueprintComponentsJson(UBlueprint* Blueprint);
+	static FString GetBlueprintComponentsJsonString(UBlueprint* Blueprint);
 
 	static void RemoveComponentFromBlueprint(UBlueprint* Blueprint, const FString& ComponentVarName);
 

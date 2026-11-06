@@ -187,8 +187,10 @@ void BPUtils::GetOrAddEntryAndReturnNodesOfFunctionGraph(UEdGraph* Graph, UK2Nod
 
 UBlueprint* BPUtils::LoadBlueprint(const FString& Path)
 {
-    UObject* LoadedObj = StaticLoadObject(UBlueprint::StaticClass(), nullptr, *Path);
-    return Cast<UBlueprint>(LoadedObj);
+    UBlueprint* Blueprint = Cast<UBlueprint>(StaticLoadObject(UBlueprint::StaticClass(), nullptr, *Path));
+    if (!Blueprint)
+        throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("No Blueprint at '%s'. Use a path like /Game/Folder/BP_Name; list_assets shows what exists, and create_blueprint makes a new one."), *Path)));
+    return Blueprint;
 }
 
 UEdGraph* BPUtils::GetEventGraph(UBlueprint* Blueprint)
@@ -209,7 +211,21 @@ UEdGraph* BPUtils::GetEventGraph(UBlueprint* Blueprint, const FString& GraphName
             return Graph;
         }
     }
-    return nullptr;
+
+	// Animation Blueprints and other Blueprint families keep graph pages in
+	// additional graph arrays. Search all public Blueprint graph collections so
+	// generic graph tools can target EventGraph, AnimGraph, state machines, and
+	// function graphs without family-specific lookup code.
+	for (UEdGraph* Graph : Blueprint->FunctionGraphs)
+		if (Graph && Graph->GetFName() == FName(*GraphName))
+			return Graph;
+	for (UEdGraph* Graph : Blueprint->MacroGraphs)
+		if (Graph && Graph->GetFName() == FName(*GraphName))
+			return Graph;
+	for (UEdGraph* Graph : Blueprint->DelegateSignatureGraphs)
+		if (Graph && Graph->GetFName() == FName(*GraphName))
+			return Graph;
+	return nullptr;
 }
 
 
@@ -270,7 +286,7 @@ TArray<FString> BPUtils::GetBlueprintVariables(UBlueprint* Blueprint, bool bIncl
     return Vars;
 }
 
-TArray<FString> BPUtils::GetBlueprintFunctions(UBlueprint* Blueprint)
+TArray<FString> BPUtils::GetBlueprintFunctions(const UBlueprint* Blueprint)
 {
     TArray<FString> Funcs;
 
@@ -343,7 +359,7 @@ void BPUtils::AddVariableToBlueprint(
     FEdGraphPinType PinType;
     if (!PinUtils::ResolvePinTypeByName(VarTypeName, PinType))
     {
-        throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Unknown variable type: %s"), *VarTypeName)));
+        throw std::runtime_error(TCHAR_TO_UTF8(*FString::Printf(TEXT("Unknown variable type: %s. Use int32, float, double, bool, FString, FName, FText, a struct such as Vector, an enum, or a class with * such as Actor*."), *VarTypeName)));
     }
 
     // Add the variable
@@ -493,14 +509,14 @@ FString BPUtils::GetBlueprintGraphJson(UEdGraph* Graph)
             Writer->WriteValue(TEXT("FuncName"), FuncNode->FunctionReference.GetMemberName().ToString());
             Writer->WriteValue(TEXT("FuncClass"), FuncNode->FunctionReference.GetMemberParentClass() ? FuncNode->FunctionReference.GetMemberParentClass()->GetName() : TEXT(""));
         }
+        else if (auto CustomEventNode = Cast<UK2Node_CustomEvent>(Node))
+        {
+            Writer->WriteValue(TEXT("EventName"), CustomEventNode->CustomFunctionName.ToString());
+        }
         else if (auto EventNode = Cast<UK2Node_Event>(Node))
         {
             Writer->WriteValue(TEXT("EventName"), EventNode->EventReference.GetMemberName().ToString());
             Writer->WriteValue(TEXT("EventClass"), EventNode->EventReference.GetMemberParentClass() ? EventNode->EventReference.GetMemberParentClass()->GetName() : TEXT(""));
-        }
-        else if (auto CustomEventNode = Cast<UK2Node_CustomEvent>(Node))
-        {
-            Writer->WriteValue(TEXT("EventName"), CustomEventNode->CustomFunctionName.ToString());
         }
         else if (auto VarGetNode = Cast<UK2Node_VariableGet>(Node))
         {
@@ -525,7 +541,6 @@ FString BPUtils::GetBlueprintGraphJson(UEdGraph* Graph)
 
     return Output;
 }
-
 
 #include "Engine/SimpleConstructionScript.h"
 #include "Engine/SCS_Node.h"
@@ -565,7 +580,7 @@ void BPUtils::AddComponentToBlueprintByName(UBlueprint* Blueprint,
     if (!NewNode)
         throw std::runtime_error("Failed to create SCS node");
 
-    // Attach as child to root node (or as root if none exists)
+    
     bool bAttached = false;
     if (ComponentClass->IsChildOf(USceneComponent::StaticClass()))
     {
@@ -602,7 +617,7 @@ void BPUtils::AddComponentToBlueprintByName(UBlueprint* Blueprint,
 }
 
 
-FString BPUtils::GetBlueprintComponentsJson(UBlueprint* Blueprint)
+FString BPUtils::GetBlueprintComponentsJsonString(UBlueprint* Blueprint)
 {
     if (!Blueprint)
         throw std::runtime_error("Blueprint is null");
@@ -909,6 +924,14 @@ void BPUtils::SetComponentPropertyInBlueprint(
                 for (const auto& [PropertyPath, PropertyValue] : Properties)
                 {
                     ObjUtils::SetPropertyValueFromString(Node->ComponentTemplate, PropertyPath, PropertyValue);
+                    // As the details panel does; components such as StaticMeshComponent rely on being told.
+                    FString TopLevel = PropertyPath;
+                    PropertyPath.Split(TEXT("."), &TopLevel, nullptr);
+                    if (FProperty* Changed = Node->ComponentTemplate->GetClass()->FindPropertyByName(*TopLevel))
+                    {
+                        FPropertyChangedEvent Event(Changed);
+                        Node->ComponentTemplate->PostEditChangeProperty(Event);
+                    }
                 }
                 FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
                 FKismetEditorUtilities::CompileBlueprint(Blueprint);

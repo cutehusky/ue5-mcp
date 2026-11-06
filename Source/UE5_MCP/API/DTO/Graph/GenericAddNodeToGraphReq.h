@@ -12,5 +12,8 @@ struct FGenericAddNodeToGraphReq: public FGraphOperationReq
 	FString NodeTypeName;
 
 	UPROPERTY()
+	FString NodeKind;
+
+	UPROPERTY()
 	FString ExtraInfo; // e.g. StructTypeName for Make/Break Struct nodes, PinTypeName for Switch Enum nodes, etc.
 };

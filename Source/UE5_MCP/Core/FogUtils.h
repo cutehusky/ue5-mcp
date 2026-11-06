@@ -1,0 +1,4 @@
+#pragma once
+#include "CoreMinimal.h"
+struct FFogReq;
+namespace FogUtils { FString InspectLocalPage(const FFogReq& R); FString InspectWorldPage(const FFogReq& R); FString CreateLocal(const FFogReq& R); FString DeleteLocal(const FFogReq& R); FString SetLocalVisible(const FFogReq& R); FString SetLocalTransform(const FFogReq& R); FString SetLocalColor(const FFogReq& R); FString SetLocalPriority(const FFogReq& R); FString InspectLocal(); FString SetLocalScalar(const FFogReq& R); FString SetTransform(const FFogReq& R); FString SetBool(const FFogReq& R); FString SetCubemap(const FFogReq& R); FString SetAlbedo(const FFogReq& R); FString SetColor(const FFogReq& R); FString SetVisible(const FFogReq& R); FString Delete(const FFogReq& R); FString Create(const FFogReq& R); FString SetSecondLayer(const FFogReq& R); FString SetVolumetricEnabled(const FFogReq& R); FString SetScalar(const FFogReq& R); FString InspectWorld(); }

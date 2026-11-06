@@ -1,0 +1,8 @@
+.env
+
+*.egg-info
+
+.uv-cache
+__pycache__
+
+*.log

@@ -840,7 +840,7 @@
 "audit_editor_assets": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 174,
+"line": 189,
 "kind": "tool",
 "core": false,
 "signature": "(asset_paths: list[str] | None = None, directory_path: str = /Game, recursive: bool = True) -> str",
@@ -903,7 +903,7 @@
 "batch_asset_operations": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 93,
+"line": 108,
 "kind": "tool",
 "core": false,
 "signature": "(operations: list[dict], dry_run: bool = False, save: bool = False, stop_on_error: bool = False) -> str",
@@ -1185,7 +1185,7 @@
 "close_asset_editor": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 215,
+"line": 230,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, confirm: bool = False) -> str",
@@ -1394,7 +1394,7 @@
 "consolidate_assets": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 271,
+"line": 286,
 "kind": "tool",
 "core": false,
 "signature": "(target_path: str, source_paths: list[str], operation: str = Inspect, expected_snapshot: str = , allow_irreversible: bool = False, confirm: bool = False, dry_run: bool = True) -> str",
@@ -1685,7 +1685,7 @@
 "create_asset": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 283,
+"line": 298,
 "kind": "tool",
 "core": true,
 "signature": "(asset_path: str, kind: str, parent_path: str = , skeleton_path: str = , struct_path: str = , animation_path: str = , dry_run: bool = False, save: bool = False) -> str",
@@ -2478,7 +2478,7 @@
 "delete_asset": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 80,
+"line": 95,
 "kind": "tool",
 "core": true,
 "signature": "(asset_path: str) -> str",
@@ -2775,7 +2775,7 @@
 "describe_ue_class": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 265,
+"line": 280,
 "kind": "tool",
 "core": true,
 "signature": "(class_path: str) -> str",
@@ -2966,7 +2966,7 @@
 "duplicate_asset": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 55,
+"line": 70,
 "kind": "tool",
 "core": true,
 "signature": "(asset_path: str, destination_path: str) -> str",
@@ -4469,7 +4469,7 @@
 "export_texture_source_image": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2428,
+"line": 2444,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, filename_stem: str, image_format: str, expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, block_index: int = 0, layer_index: int = 0, mip_index: int = 0, slice_index: int = 0, confirm: bool = False, dry_run: bool = True) -> str",
@@ -4550,7 +4550,7 @@
 "fixup_editor_redirectors": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 185,
+"line": 200,
 "kind": "tool",
 "core": false,
 "signature": "(asset_paths: list[str] | None = None, directory_path: str = /Game, recursive: bool = True, confirm: bool = False) -> str",
@@ -4586,7 +4586,7 @@
 "focus_asset_editor": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 209,
+"line": 224,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str) -> str",
@@ -4649,7 +4649,7 @@
 "get_asset_capabilities": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 87,
+"line": 102,
 "kind": "tool",
 "core": false,
 "signature": "() -> str",
@@ -4658,7 +4658,7 @@
 "get_asset_editor_status": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 197,
+"line": 212,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str) -> str",
@@ -4676,7 +4676,7 @@
 "get_asset_referencers": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 73,
+"line": 88,
 "kind": "tool",
 "core": true,
 "signature": "(asset_path: str) -> str",
@@ -4685,7 +4685,7 @@
 "get_asset_source_control_history": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 149,
+"line": 164,
 "kind": "tool",
 "core": false,
 "signature": "(asset_paths: list[str] | None = None, max_history: int = 20, history_offset: int = 0, refresh: bool = True, file_paths: list[str] | None = None) -> str",
@@ -4694,7 +4694,7 @@
 "get_asset_source_control_status": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 140,
+"line": 155,
 "kind": "tool",
 "core": false,
 "signature": "(asset_paths: list[str] | None = None, refresh: bool = True, file_paths: list[str] | None = None) -> str",
@@ -4748,7 +4748,7 @@
 "get_content_browser_selection": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 223,
+"line": 238,
 "kind": "tool",
 "core": false,
 "signature": "() -> str",
@@ -4802,7 +4802,7 @@
 "get_editor_source_control_provider": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 134,
+"line": 149,
 "kind": "tool",
 "core": false,
 "signature": "() -> str",
@@ -7696,7 +7696,7 @@
 "inspect_texture_alpha_coverage": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2466,
+"line": 2482,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str) -> str",
@@ -7723,7 +7723,7 @@
 "inspect_texture_compression_settings": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2507,
+"line": 2523,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str) -> str",
@@ -7732,7 +7732,7 @@
 "inspect_texture_downscale_overrides": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2563,
+"line": 2579,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, start: int = 0, count: int = 64) -> str",
@@ -7759,7 +7759,7 @@
 "inspect_texture_sampling_settings": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2516,
+"line": 2532,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str) -> str",
@@ -9092,7 +9092,7 @@
 "list_ue_classes": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 245,
+"line": 260,
 "kind": "tool",
 "core": true,
 "signature": "(search: str = , parent_class: str = , category: str = , source: str = , module: str = , can_be_parent: bool = False, include_abstract: bool = False, limit: int = 200) -> str",
@@ -9299,7 +9299,7 @@
 "measure_texture_source_alpha_coverage": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2475,
+"line": 2491,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, mip_index: int = 0, confirm: bool = False, start: int = 0, count: int = 64) -> str",
@@ -9563,7 +9563,7 @@
 "open_asset_editor": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 203,
+"line": 218,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str) -> str",
@@ -9572,7 +9572,7 @@
 "operate_asset_source_control": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 160,
+"line": 175,
 "kind": "tool",
 "core": false,
 "signature": "(asset_paths: list[str], operation: Literal[checkout, add, revert, submit], description: str = , dry_run: bool = False, confirm: bool = False, confirm_delete_added: bool = False, file_paths: list[str] | None = None) -> str",
@@ -9627,7 +9627,7 @@
 "preview_asset_operation": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 123,
+"line": 138,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, operation: str = set_properties, asset_class: str = , properties: dict[str, str] | None = None) -> str",
@@ -10314,7 +10314,7 @@
 "rename_asset": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 64,
+"line": 79,
 "kind": "tool",
 "core": true,
 "signature": "(asset_path: str, destination_path: str) -> str",
@@ -10512,6 +10512,15 @@
 "signature": "(bp_path: str, old_var_name: str, new_var_name: str) -> str",
 "summary": "Rename a variable in the Blueprint.",
 "tool": "edit_variable_in_bp"
+},
+"render_asset_thumbnail": {
+"feature": "assets",
+"file": "Python/MCP/ue5_tools/assets.py",
+"line": 55,
+"kind": "tool",
+"core": true,
+"signature": "(asset_path: str, output_path: str = , width: int = 512, height: int = 512, overwrite: bool = False) -> str",
+"summary": "Render an asset (mesh, Blueprint, material, texture...) to a PNG/JPG/BMP/TGA/EXR preview image."
 },
 "reorder_audio_volume_overrides": {
 "feature": "audio",
@@ -11293,6 +11302,15 @@
 "signature": "(asset_path: str, expected_class_path: str, expected_xyz: list[int], xyz: list[int], confirm: bool = False, dry_run: bool = True, expected_asset_snapshot: str = ) -> str",
 "summary": "Resize all volume target XYZ together with full current dimensions/class guards."
 },
+"resize_texture_source": {
+"feature": "textures",
+"file": "Python/MCP/ue5_tools/textures.py",
+"line": 2428,
+"kind": "tool",
+"core": true,
+"signature": "(asset_path: str, width: int, height: int = 0, filter: str = default, dry_run: bool = True, confirm: bool = False, save: bool = False) -> str",
+"summary": "Resample a Texture2D's authored source pixels to a new size so the .uasset on disk really shrinks."
+},
 "resolve_dialogue_context": {
 "feature": "audio",
 "file": "Python/MCP/ue5_tools/audio.py",
@@ -11332,7 +11350,7 @@
 "reveal_content_browser_assets": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 237,
+"line": 252,
 "kind": "tool",
 "core": false,
 "signature": "(asset_paths: list[str]) -> str",
@@ -11518,7 +11536,7 @@
 "select_content_browser_assets": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 229,
+"line": 244,
 "kind": "tool",
 "core": false,
 "signature": "(asset_paths: list[str]) -> str",
@@ -12801,7 +12819,7 @@
 "line": 1866,
 "kind": "merged",
 "core": false,
-"signature": "(*, variant: Literal[name_list, number_list], asset_path: str, scope: str, index: int, expected_type: str, field_name: str, values: Union[list[float], list[str]], item_name: str = None, expected_name: str = None, confirm: Optional[bool] = None, dry_run: Optional[bool] = None, save: Optional[bool] = None) -> str",
+"signature": "(*, variant: Literal[name_list, number_list], asset_path: str, scope: str, index: int, expected_type: str, field_name: str, values: Union[list[str], list[float]], item_name: str = None, expected_name: str = None, confirm: Optional[bool] = None, dry_run: Optional[bool] = None, save: Optional[bool] = None) -> str",
 "summary": "Variants: `name_list`, `number_list`"
 },
 "set_ik_settings_asset_reference": {
@@ -14441,7 +14459,7 @@
 "line": 1103,
 "kind": "merged",
 "core": false,
-"signature": "(*, variant: Literal[scalar, text, vector, enum, int64, string_array, scalar_array, vector_array], asset_path: str, parameter_name: str, parameter_id: str, value: Union[float, str, NoneType] = None, confirm: Optional[bool] = None, dry_run: Optional[bool] = None, save: Optional[bool] = None, x: Optional[float] = None, y: Optional[float] = None, z: Optional[float] = None, values: Union[list[float], list[str], list[dict], NoneType] = None) -> str",
+"signature": "(*, variant: Literal[scalar, text, vector, enum, int64, string_array, scalar_array, vector_array], asset_path: str, parameter_name: str, parameter_id: str, value: Union[float, str, NoneType] = None, confirm: Optional[bool] = None, dry_run: Optional[bool] = None, save: Optional[bool] = None, x: Optional[float] = None, y: Optional[float] = None, z: Optional[float] = None, values: Union[list[dict], list[str], list[float], NoneType] = None) -> str",
 "summary": "Variants: `scalar`, `text`, `vector`, `enum`, `int64`, `string_array`, `scalar_array`, `vector_array`"
 },
 "set_pcg_graph_parameter_asset": {
@@ -15560,7 +15578,7 @@
 "set_runtime_virtual_texture_component": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2625,
+"line": 2641,
 "kind": "merged",
 "core": false,
 "signature": "(*, variant: Literal[numeric, enum], actor_path: str, component_path: str, expected_class_path: str, actor_guid: str, expected_label: str, expected_asset_snapshot: str, field_name: str, expected_value: Union[float, int], value: Union[float, int], confirm: Optional[bool] = None, dry_run: Optional[bool] = None) -> str",
@@ -16488,7 +16506,7 @@
 "set_texture_alpha_coverage": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2448,
+"line": 2464,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, enabled: bool, thresholds_rgba: list[float], expected_enabled: bool, expected_thresholds_rgba: list[float], expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, confirm: bool = False, dry_run: bool = True) -> str",
@@ -16497,7 +16515,7 @@
 "set_texture_build_resize": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2591,
+"line": 2607,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, width: int, height: int, expected_width: int, expected_height: int, expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, confirm: bool = False, dry_run: bool = True) -> str",
@@ -16506,7 +16524,7 @@
 "set_texture_color_adjustment": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2574,
+"line": 2590,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, field_name: str, value: float, expected_value: float, expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, confirm: bool = False, dry_run: bool = True) -> str",
@@ -16515,7 +16533,7 @@
 "set_texture_compression_setting": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2491,
+"line": 2507,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, field_name: str, value: int, expected_value: int, expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, confirm: bool = False, dry_run: bool = True) -> str",
@@ -16524,7 +16542,7 @@
 "set_texture_downscale_override": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2546,
+"line": 2562,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, operation: str, platform_key: str, value: float, expected_value: float, expected_exists: bool, expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, confirm: bool = False, dry_run: bool = True) -> str",
@@ -16533,7 +16551,7 @@
 "set_texture_padding_color": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2609,
+"line": 2625,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, rgba_bytes: list[int], expected_rgba_bytes: list[int], expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, confirm: bool = False, dry_run: bool = True) -> str",
@@ -16542,7 +16560,7 @@
 "set_texture_sampling_setting": {
 "feature": "textures",
 "file": "Python/MCP/ue5_tools/textures.py",
-"line": 2525,
+"line": 2541,
 "kind": "tool",
 "core": false,
 "signature": "(asset_path: str, field_name: str, value: int, expected_value: int, expected_class_path: str, expected_source_id: str, expected_asset_snapshot: str, confirm: bool = False, dry_run: bool = True) -> str",
@@ -17229,7 +17247,7 @@
 "validate_asset": {
 "feature": "assets",
 "file": "Python/MCP/ue5_tools/assets.py",
-"line": 113,
+"line": 128,
 "kind": "tool",
 "core": true,
 "signature": "(asset_path: str, asset_class: str = , properties: dict | None = None) -> str",

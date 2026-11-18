@@ -52,6 +52,21 @@ def save_asset(asset_path: str) -> str:
 
 
 @mcp.tool()
+def render_asset_thumbnail(asset_path: str, output_path: str = "", width: int = 512, height: int = 512,
+                           overwrite: bool = False) -> str:
+    """Render an asset (mesh, Blueprint, material, texture...) to a PNG/JPG/BMP/TGA/EXR preview image.
+
+    Uses the Content Browser thumbnail renderer, so camera and lighting match the asset tile.
+    width/height 1..2048. output_path empty -> Saved/UE5_MCP/Thumbnails/<AssetName>.png; relative paths
+    resolve under that folder; absolute paths are used as given. Existing files need overwrite=True.
+    Textures/materials may come out smaller to keep their aspect ratio. Read-only for the asset.
+    """
+    return httpx.post(f"{app.BASE_URL}/assets/thumbnail/render", json={
+        "AssetPath": asset_path, "OutputPath": output_path, "Width": width, "Height": height,
+        "bOverwrite": overwrite}, timeout=300).text
+
+
+@mcp.tool()
 def duplicate_asset(asset_path: str, destination_path: str) -> str:
     """Duplicate an asset to a new content path."""
     response = httpx.post(f"{app.BASE_URL}/assets/duplicate", json={

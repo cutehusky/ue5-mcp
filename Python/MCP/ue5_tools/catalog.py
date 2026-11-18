@@ -9,7 +9,7 @@ from .app import mcp, args
 # three catalog tools; everything else stays callable and is found with find_tools. --all-tools restores the full list.
 CORE_TOOLS = frozenset("""
 get_ue_editor_status get_editor_logs execute_console_command list_blueprint_errors get_project_errors undo_ue_editor_transaction redo_ue_editor_transaction get_editor_build_status
-list_assets describe_asset get_asset_properties set_asset_properties save_asset duplicate_asset rename_asset delete_asset
+list_assets describe_asset get_asset_properties set_asset_properties save_asset render_asset_thumbnail resize_texture_source duplicate_asset rename_asset delete_asset
 create_asset get_asset_referencers validate_asset list_ue_classes describe_ue_class
 create_blueprint compile_blueprint compile_editor_blueprints get_blueprint_graph get_graph organize_blueprint_graph
     edit_blueprint_breakpoint inspect_blueprint_debug_state control_blueprint_debugger create_cpp_class

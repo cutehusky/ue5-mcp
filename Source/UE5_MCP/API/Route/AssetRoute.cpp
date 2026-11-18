@@ -14,6 +14,8 @@
 #include "UE5_MCP/Core/MaterialMetadataUtils.h"
 #include "UE5_MCP/API/DTO/RenderTargetReq.h"
 #include "UE5_MCP/Core/RenderTargetUtils.h"
+#include "UE5_MCP/API/DTO/AssetPreviewReq.h"
+#include "UE5_MCP/Core/AssetPreviewUtils.h"
 #include "UE5_MCP/API/DTO/DecalReq.h"
 #include "UE5_MCP/Core/DecalUtils.h"
 #include "UE5_MCP/API/DTO/WorldPartitionReq.h"
@@ -2716,6 +2718,8 @@ void BuildAssetRouter(TSharedPtr<HttpApp> App)
  App->Post("/textures/alpha-coverage/measure-source", [](const FHttpContext<FRenderTargetReq,FString>& C) { return C.TextResponse(RenderTargetUtils::MeasureSourceTextureAlphaCoverage(C.RequestBody()),TEXT("application/json")); });
  App->Post("/textures/alpha-coverage/inspect", [](const FHttpContext<FRenderTargetReq,FString>& C) { return C.TextResponse(RenderTargetUtils::InspectSourceTextureAlphaCoverage(C.RequestBody()),TEXT("application/json")); });
  App->Post("/textures/alpha-coverage", [](const FHttpContext<FRenderTargetReq,FString>& C) { return C.TextResponse(RenderTargetUtils::SetSourceTextureAlphaCoverage(C.RequestBody()),TEXT("application/json")); });
+ App->Post("/assets/thumbnail/render", [](const FHttpContext<FAssetPreviewReq,FString>& C) { return C.TextResponse(AssetPreviewUtils::RenderAssetThumbnail(C.RequestBody()),TEXT("application/json")); });
+ App->Post("/textures/source/resize", [](const FHttpContext<FAssetPreviewReq,FString>& C) { return C.TextResponse(AssetPreviewUtils::ResizeTextureSource(C.RequestBody()),TEXT("application/json")); });
  App->Post("/textures/source/export-image", [](const FHttpContext<FRenderTargetReq,FString>& C) { return C.TextResponse(RenderTargetUtils::ExportTextureSourceImage(C.RequestBody()),TEXT("application/json")); });
  App->Post("/textures/source/export-dds", [](const FHttpContext<FRenderTargetReq,FString>& C) { return C.TextResponse(RenderTargetUtils::ExportTextureSourceDDS(C.RequestBody()),TEXT("application/json")); });
  App->Post("/render-targets/export-image", [](const FHttpContext<FRenderTargetReq,FString>& C) { return C.TextResponse(RenderTargetUtils::ExportRenderTargetImage(C.RequestBody()),TEXT("application/json")); });

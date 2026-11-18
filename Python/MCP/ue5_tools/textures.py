@@ -2425,6 +2425,22 @@ def export_texture_source_dds(asset_path: str, filename_stem: str, expected_clas
 
 
 @mcp.tool()
+def resize_texture_source(asset_path: str, width: int, height: int = 0, filter: str = "default",
+                          dry_run: bool = True, confirm: bool = False, save: bool = False) -> str:
+    """Resample a Texture2D's authored source pixels to a new size so the .uasset on disk really shrinks.
+
+    Unlike MaxTextureSize/LODBias this rewrites the stored source image (not undoable). height=0 keeps
+    aspect ratio. filter: default, point, box, bilinear, gaussian, catmullrom, mitchell, adaptivesharp,
+    adaptivesmooth, lanczos4, lanczos5 (wrap addressing is respected). Plain Texture2D only; no UDIM/
+    multi-layer. Run with dry_run=True first, then dry_run=False confirm=True; save=True writes the package.
+    Reimporting from the original file restores the old size.
+    """
+    return httpx.post(f"{app.BASE_URL}/textures/source/resize", json={
+        "AssetPath": asset_path, "Width": width, "Height": height, "Filter": filter,
+        "bDryRun": dry_run, "bConfirm": confirm, "bSave": save}, timeout=1800).text
+
+
+@mcp.tool()
 def export_texture_source_image(asset_path: str, filename_stem: str, image_format: str,
                                 expected_class_path: str, expected_source_id: str,
                                 expected_asset_snapshot: str, block_index: int = 0,

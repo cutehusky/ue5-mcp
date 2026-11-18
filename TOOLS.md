@@ -1,6 +1,6 @@
 # UE5_MCP tools
 
-All 1732 tools, grouped by feature module in `Python/MCP/ue5_tools/`. **Core** tools are listed to clients by default; reach the others with `find_tools` and `call_tool`, or start the server with `--all-tools`.
+All 1734 tools, grouped by feature module in `Python/MCP/ue5_tools/`. **Core** tools are listed to clients by default; reach the others with `find_tools` and `call_tool`, or start the server with `--all-tools`.
 
 Tools that show variants take a required `variant` argument.
 
@@ -10,7 +10,7 @@ Tools that show variants take a required `variant` argument.
 |---|---|
 | [ai](#ai) | 44 |
 | [animation](#animation) | 91 |
-| [assets](#assets) | 30 |
+| [assets](#assets) | 31 |
 | [audio](#audio) | 106 |
 | [blueprints](#blueprints) | 42 |
 | [catalog](#catalog) | 3 |
@@ -38,7 +38,7 @@ Tools that show variants take a required `variant` argument.
 | [rigs](#rigs) | 16 |
 | [splines](#splines) | 37 |
 | [state_tree](#state_tree) | 22 |
-| [textures](#textures) | 184 |
+| [textures](#textures) | 185 |
 | [ui](#ui) | 6 |
 | [volumes](#volumes) | 31 |
 | [world](#world) | 48 |
@@ -218,6 +218,7 @@ Tools that show variants take a required `variant` argument.
 | `operate_asset_source_control` |  | Run a provider operation on /Game assets or selected project files. Revert/submit require confirmation; submit requires a description and saved packages. |
 | `preview_asset_operation` |  | Preview property changes or a save with validation and no asset mutation. |
 | `rename_asset` | Core | Rename or move an asset to a new content path. |
+| `render_asset_thumbnail` | Core | Render an asset (mesh, Blueprint, material, texture...) to a PNG/JPG/BMP/TGA/EXR preview image. |
 | `reveal_content_browser_assets` |  | Select assets and focus their location in the UE Content Browser. |
 | `save_asset` | Core | Save a dirty UE asset package. |
 | `select_content_browser_assets` |  | Select assets in the Content Browser without forcing it to the foreground. |
@@ -1640,6 +1641,7 @@ Tools that show variants take a required `variant` argument.
 | `resize_render_target_2d` |  | Edit paired standard-format target dimensions1..2048 with full previous pair/class guard. |
 | `resize_render_target_2d_array` |  | Resize all array target width/height/slices together with full current dimensions/class guards. |
 | `resize_render_target_volume` |  | Resize all volume target XYZ together with full current dimensions/class guards. |
+| `resize_texture_source` | Core | Resample a Texture2D's authored source pixels to a new size so the .uasset on disk really shrinks. |
 | `set_light_texture` |  | Assign loaded IESTexture/LightFunctionMaterial or rect SourceTexture; empty clears. |
 | `set_render_target_2d_array_clear_color` |  | Author native array clear linear RGBA-65504..65504 with class/width/height/slices/HDR/full previous color guards. |
 | `set_render_target_2d_array_setting` |  | Set native array TargetGamma0..10/bHDR/bSupportsUAV0..1 with exact class/width/height/slices/current scalar guards. |

@@ -7,6 +7,7 @@
 #include "FileHelpers.h"
 #include "HAL/FileManager.h"
 #include "ImageCore.h"
+#include "ImageCoreUtils.h"
 #include "ImageUtils.h"
 #include "Misc/ObjectThumbnail.h"
 #include "Misc/Paths.h"
@@ -190,31 +191,121 @@ FString AssetPreviewUtils::ResizeTextureSource(const FAssetPreviewReq& R)
 	{
 		throw std::runtime_error("Texture has no editable source data");
 	}
-	if (Source.GetNumBlocks() != 1 || Source.GetNumLayers() != 1 || Source.GetNumSlices() != 1)
+	if (Source.GetNumSlices() != 1)
 	{
-		throw std::runtime_error("UDIM, multi-layer or multi-slice source is not supported");
+		throw std::runtime_error("Multi-slice source is not supported");
 	}
 
-	const int32 OldW = Source.GetSizeX();
-	const int32 OldH = Source.GetSizeY();
-	const int32 OldMips = Source.GetNumMips();
-	if (R.Width < 1 || R.Width > MaxTextureSourceSize || R.Height < 0 || R.Height > MaxTextureSourceSize)
+	// UDIM textures have several blocks (tiles); multi-layer textures have several layers per block.
+	// Every block/layer is resampled by the same scale and the source is rebuilt with InitBlocked.
+	const int32 NumBlocks = Source.GetNumBlocks();
+	const int32 NumLayers = Source.GetNumLayers();
+	TArray<FTextureSourceBlock> OldBlocks;
+	OldBlocks.SetNum(NumBlocks);
+	int32 Largest = 0;
+	for (int32 B = 0; B < NumBlocks; ++B)
 	{
-		throw std::runtime_error("Width must be 1..16384 and Height 0..16384 (0 keeps aspect ratio)");
+		Source.GetBlock(B, OldBlocks[B]);
+		if (OldBlocks[B].NumSlices != 1)
+		{
+			throw std::runtime_error("Multi-slice source block is not supported");
+		}
+		Largest = FMath::Max(Largest, FMath::Max(OldBlocks[B].SizeX, OldBlocks[B].SizeY));
 	}
-	const int32 NewW = R.Width;
-	const int32 NewH = R.Height > 0 ? R.Height : FMath::Max(1, FMath::RoundToInt(double(OldH) * double(NewW) / double(OldW)));
-	if (NewH > MaxTextureSourceSize)
+	const int32 OldW = OldBlocks[0].SizeX;
+	const int32 OldH = OldBlocks[0].SizeY;
+	int32 OldMips = 0;
+	for (const FTextureSourceBlock& Block : OldBlocks)
 	{
-		throw std::runtime_error("Computed height exceeds 16384");
+		OldMips = FMath::Max(OldMips, Block.NumMips);
 	}
+	if (OldW < 1 || OldH < 1 || Largest < 1)
+	{
+		throw std::runtime_error("Texture source has an empty block");
+	}
+
+	// MaxSize > 0: shrink so the largest side of any block is at most MaxSize (never enlarges; Width/Height ignored).
+	// Otherwise Width/Height give block 0's new size and other blocks keep their size ratio to block 0.
+	double ScaleX = 1.0;
+	double ScaleY = 1.0;
+	int32 NewW = OldW;
+	int32 NewH = OldH;
+	if (R.MaxSize > 0)
+	{
+		if (R.MaxSize > MaxTextureSourceSize)
+		{
+			throw std::runtime_error("MaxSize must be 1..16384");
+		}
+		ScaleX = ScaleY = FMath::Min(1.0, double(R.MaxSize) / double(Largest));
+	}
+	else
+	{
+		if (R.Width < 1 || R.Width > MaxTextureSourceSize || R.Height < 0 || R.Height > MaxTextureSourceSize)
+		{
+			throw std::runtime_error("Width must be 1..16384 and Height 0..16384 (0 keeps aspect ratio), or pass MaxSize");
+		}
+		NewW = R.Width;
+		NewH = R.Height > 0 ? R.Height : FMath::Max(1, FMath::RoundToInt(double(OldH) * double(NewW) / double(OldW)));
+		ScaleX = double(NewW) / double(OldW);
+		ScaleY = double(NewH) / double(OldH);
+	}
+
+	TArray<FTextureSourceBlock> NewBlocks = OldBlocks;
+	bool bSameSize = true;
+	bool bPow2 = true;
+	for (int32 B = 0; B < NumBlocks; ++B)
+	{
+		FTextureSourceBlock& NB = NewBlocks[B];
+		if (B == 0 && R.MaxSize <= 0)
+		{
+			NB.SizeX = NewW;
+			NB.SizeY = NewH;
+		}
+		else
+		{
+			NB.SizeX = FMath::Max(1, FMath::RoundToInt(double(OldBlocks[B].SizeX) * ScaleX));
+			NB.SizeY = FMath::Max(1, FMath::RoundToInt(double(OldBlocks[B].SizeY) * ScaleY));
+		}
+		if (NB.SizeX > MaxTextureSourceSize || NB.SizeY > MaxTextureSourceSize)
+		{
+			throw std::runtime_error("Computed size exceeds 16384");
+		}
+		NB.NumMips = 1;
+		bSameSize &= NB.SizeX == OldBlocks[B].SizeX && NB.SizeY == OldBlocks[B].SizeY;
+		bPow2 &= FMath::IsPowerOfTwo(NB.SizeX) && FMath::IsPowerOfTwo(NB.SizeY);
+	}
+	NewW = NewBlocks[0].SizeX;
+	NewH = NewBlocks[0].SizeY;
 
 	FImageCore::EResizeImageFilter Filter = ParseFilter(R.Filter);
 	if (Tex->AddressX == TA_Wrap) Filter |= FImageCore::EResizeImageFilter::Flag_WrapX;
 	if (Tex->AddressY == TA_Wrap) Filter |= FImageCore::EResizeImageFilter::Flag_WrapY;
 
-	const bool bPow2 = FMath::IsPowerOfTwo(NewW) && FMath::IsPowerOfTwo(NewH);
-	const bool bSameSize = NewW == OldW && NewH == OldH;
+	// Legacy Pow22 gamma: the resampler can read Pow22 but can't write it, so those layers are re-encoded
+	// to sRGB (the engine's own rule: "Pow22 Source should encode to sRGB Dest") and Use Legacy Gamma is
+	// turned off, which leaves the built texture looking the same (platform data is always sRGB anyway).
+	bool bLegacyGamma = false;
+	FString RawFormat;
+	int64 OldBytes = 0;
+	int64 NewBytes = 0;
+	for (int32 L = 0; L < NumLayers; ++L)
+	{
+		FImageInfo Info;
+		if (Source.GetMipImageInfo(Info, 0, L, 0))
+		{
+			bLegacyGamma |= Info.GammaSpace == EGammaSpace::Pow22;
+			if (L == 0)
+			{
+				RawFormat = ERawImageFormat::GetName(Info.Format);
+			}
+		}
+		for (int32 B = 0; B < NumBlocks; ++B)
+		{
+			OldBytes += Source.CalcMipSize(B, L, 0);
+			NewBytes += int64(NewBlocks[B].SizeX) * NewBlocks[B].SizeY * Source.GetBytesPerPixel(L);
+		}
+	}
+
 	TArray<FString> Warnings;
 	if (!bPow2 && Tex->PowerOfTwoMode == ETexturePowerOfTwoSetting::None)
 	{
@@ -232,6 +323,14 @@ FString AssetPreviewUtils::ResizeTextureSource(const FAssetPreviewReq& R)
 	{
 		Warnings.Add(TEXT("MaxTextureSize/LODBias still apply on top of the new source size."));
 	}
+	if (bLegacyGamma && !bSameSize)
+	{
+		Warnings.Add(TEXT("Source uses legacy Pow22 gamma: it is re-encoded to sRGB and 'sRGB Use Legacy Gamma' is turned off, so it renders the same."));
+	}
+	if (NumBlocks > 1)
+	{
+		Warnings.Add(TEXT("UDIM source: every tile is scaled by the same factor."));
+	}
 	const FString SourceFile = Tex->AssetImportData ? Tex->AssetImportData->GetFirstFilename() : FString();
 	if (!SourceFile.IsEmpty())
 	{
@@ -244,54 +343,87 @@ FString AssetPreviewUtils::ResizeTextureSource(const FAssetPreviewReq& R)
 		throw std::runtime_error("Pass confirm=true (with dry_run=false) to rewrite the texture source");
 	}
 
-	int64 OldBytes = Source.CalcMipSize(0);
-	int64 NewBytes = OldBytes;
 	bool bSaved = false;
-	FString RawFormat;
-
-	{
-		FImageInfo Info;
-		if (Source.GetMipImageInfo(Info, 0, 0, 0))
-		{
-			// The engine's resampler asserts on legacy Pow22 gamma output (ImageCore.cpp), which would crash the editor: refuse it here.
-			if (Info.GammaSpace == EGammaSpace::Pow22)
-			{
-				throw std::runtime_error("Texture source uses legacy Pow22 gamma (Use Legacy Gamma); the engine resampler can't write it, so it is left unchanged");
-			}
-			RawFormat = ERawImageFormat::GetName(Info.Format);
-			NewBytes = int64(NewW) * NewH * ERawImageFormat::GetBytesPerPixel(Info.Format);
-		}
-	}
-
 	if (bApply)
 	{
-		FImage SrcImage;
-		if (!Source.GetMipImage(SrcImage, 0))
+		// Resample every block/layer first; nothing is changed if any of them fails.
+		TArray<TArray64<uint8>> BlockData;
+		BlockData.SetNum(NumBlocks);
+		TArray<ETextureSourceFormat> NewFormats;
+		NewFormats.SetNum(NumLayers);
+		FImage SingleImage;
+		for (int32 B = 0; B < NumBlocks; ++B)
 		{
-			throw std::runtime_error("Could not decode texture source mip 0");
-		}
-
-		if (SrcImage.GammaSpace == EGammaSpace::Pow22)
-		{
-			throw std::runtime_error("Texture source uses legacy Pow22 gamma; left unchanged");
-		}
-		FImage DstImage;
-		FImageCore::ResizeImageAllocDest(SrcImage, DstImage, NewW, NewH, SrcImage.Format, SrcImage.GammaSpace, Filter);
-		if (DstImage.SizeX != NewW || DstImage.SizeY != NewH || DstImage.RawData.IsEmpty())
-		{
-			throw std::runtime_error("Resize produced an invalid image");
+			for (int32 L = 0; L < NumLayers; ++L)
+			{
+				FImage SrcImage;
+				if (!Source.GetMipImage(SrcImage, B, L, 0))
+				{
+					throw std::runtime_error("Could not decode a texture source block/layer");
+				}
+				const EGammaSpace DstGamma = SrcImage.GammaSpace == EGammaSpace::Pow22 ? EGammaSpace::sRGB : SrcImage.GammaSpace;
+				FImage DstImage;
+				FImageCore::ResizeImageAllocDest(SrcImage, DstImage, NewBlocks[B].SizeX, NewBlocks[B].SizeY, SrcImage.Format, DstGamma, Filter);
+				if (DstImage.SizeX != NewBlocks[B].SizeX || DstImage.SizeY != NewBlocks[B].SizeY || DstImage.RawData.IsEmpty())
+				{
+					throw std::runtime_error("Resize produced an invalid image");
+				}
+				const ETextureSourceFormat Fmt = FImageCoreUtils::ConvertToTextureSourceFormat(DstImage.Format);
+				if (Fmt == TSF_Invalid || (B > 0 && Fmt != NewFormats[L]))
+				{
+					throw std::runtime_error("Resized layer format can't be stored as texture source");
+				}
+				NewFormats[L] = Fmt;
+				if (NumBlocks == 1 && NumLayers == 1)
+				{
+					SingleImage = MoveTemp(DstImage);
+				}
+				else
+				{
+					BlockData[B].Append(DstImage.RawData);
+				}
+			}
 		}
 
 		Tex->PreEditChange(nullptr);
-		Source.Init(DstImage);
+		if (NumBlocks == 1 && NumLayers == 1)
+		{
+			Source.Init(SingleImage);
+		}
+		else
+		{
+			TArray<const uint8*> DataPerBlock;
+			for (const TArray64<uint8>& Data : BlockData)
+			{
+				DataPerBlock.Add(Data.GetData());
+			}
+			Source.InitBlocked(NewFormats.GetData(), NewBlocks.GetData(), NumLayers, NumBlocks, DataPerBlock.GetData());
+		}
+		if (bLegacyGamma)
+		{
+			Tex->bUseLegacyGamma = false;
+		}
 		Tex->PostEditChange();
 		Tex->MarkPackageDirty();
 
-		if (Source.GetSizeX() != NewW || Source.GetSizeY() != NewH)
+		if (Source.GetNumBlocks() != NumBlocks || Source.GetNumLayers() != NumLayers)
 		{
-			throw std::runtime_error("Source readback size mismatch after resize");
+			throw std::runtime_error("Source readback block/layer count mismatch after resize");
 		}
-		NewBytes = Source.CalcMipSize(0);
+		NewBytes = 0;
+		for (int32 B = 0; B < NumBlocks; ++B)
+		{
+			FTextureSourceBlock Check;
+			Source.GetBlock(B, Check);
+			if (Check.SizeX != NewBlocks[B].SizeX || Check.SizeY != NewBlocks[B].SizeY)
+			{
+				throw std::runtime_error("Source readback size mismatch after resize");
+			}
+			for (int32 L = 0; L < NumLayers; ++L)
+			{
+				NewBytes += Source.CalcMipSize(B, L, 0);
+			}
+		}
 
 		if (R.bSave)
 		{
@@ -313,9 +445,14 @@ FString AssetPreviewUtils::ResizeTextureSource(const FAssetPreviewReq& R)
 	J->WriteValue(TEXT("package_dirty"), Tex->GetPackage()->IsDirty());
 	J->WriteValue(TEXT("old_width"), OldW);
 	J->WriteValue(TEXT("old_height"), OldH);
+	J->WriteValue(TEXT("old_largest_side"), Largest);
 	J->WriteValue(TEXT("old_source_mips"), OldMips);
 	J->WriteValue(TEXT("new_width"), NewW);
 	J->WriteValue(TEXT("new_height"), NewH);
+	J->WriteValue(TEXT("max_size"), R.MaxSize);
+	J->WriteValue(TEXT("num_blocks"), NumBlocks);
+	J->WriteValue(TEXT("num_layers"), NumLayers);
+	J->WriteValue(TEXT("legacy_gamma"), bLegacyGamma);
 	J->WriteValue(TEXT("raw_format"), RawFormat);
 	J->WriteValue(TEXT("old_source_bytes"), OldBytes);
 	J->WriteValue(TEXT("new_source_bytes"), NewBytes);
@@ -323,6 +460,22 @@ FString AssetPreviewUtils::ResizeTextureSource(const FAssetPreviewReq& R)
 	J->WriteValue(TEXT("power_of_two"), bPow2);
 	J->WriteValue(TEXT("same_size_noop"), bSameSize);
 	J->WriteValue(TEXT("import_source_file"), SourceFile);
+	if (NumBlocks > 1)
+	{
+		J->WriteArrayStart(TEXT("blocks"));
+		for (int32 B = 0; B < FMath::Min(NumBlocks, 64); ++B)
+		{
+			J->WriteObjectStart();
+			J->WriteValue(TEXT("block_x"), OldBlocks[B].BlockX);
+			J->WriteValue(TEXT("block_y"), OldBlocks[B].BlockY);
+			J->WriteValue(TEXT("old_width"), OldBlocks[B].SizeX);
+			J->WriteValue(TEXT("old_height"), OldBlocks[B].SizeY);
+			J->WriteValue(TEXT("new_width"), NewBlocks[B].SizeX);
+			J->WriteValue(TEXT("new_height"), NewBlocks[B].SizeY);
+			J->WriteObjectEnd();
+		}
+		J->WriteArrayEnd();
+	}
 	J->WriteArrayStart(TEXT("warnings"));
 	for (const FString& W : Warnings) J->WriteValue(W);
 	J->WriteArrayEnd();

@@ -18,6 +18,9 @@ struct FAssetPreviewReq
 	UPROPERTY() int32 Width = 512;
 	UPROPERTY() int32 Height = 512;
 
+	/** Resize: when > 0, shrink so the largest side of every block (UDIM tile) is at most MaxSize; Width/Height are ignored and smaller textures are left unchanged. */
+	UPROPERTY() int32 MaxSize = 0;
+
 	/** Thumbnail: replace an existing output file. */
 	UPROPERTY() bool bOverwrite = false;
 
